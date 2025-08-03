@@ -10,9 +10,6 @@ const totalInput = document.getElementById('total');
 const outputMessage = document.getElementById('outputMessage');
 const copyStatus = document.getElementById('copyStatus');
 const resetBtn = document.getElementById('resetBtn');
-const helpBtn = document.getElementById('helpBtn');
-const modalHelp = document.getElementById('modalHelp');
-const closeModal = document.getElementById('closeModal');
 const sendBtn = document.getElementById('sendBtn');
 
 function addPressed(btn) {
@@ -88,20 +85,6 @@ resetBtn.addEventListener('click', function () {
   flightDestino.textContent = '';
   updateButtonState(); // Vuelve a deshabilitar los botones
   updateInactiveEffects(); // Vuelve a aplicar opacidad y efectos visuales
-});
-
-// Modal de ayuda
-helpBtn.addEventListener('click', () => {
-  modalHelp.classList.remove('hidden');
-});
-closeModal.addEventListener('click', () => {
-  modalHelp.classList.add('hidden');
-});
-// Cerrar modal al hacer clic fuera del contenido
-modalHelp.addEventListener('click', function (e) {
-  if (e.target === modalHelp) {
-    modalHelp.classList.add('hidden');
-  }
 });
 
 // Enviar mensaje por WhatsApp (mensaje generado dinámicamente)
