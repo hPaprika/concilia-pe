@@ -104,10 +104,14 @@ modalHelp.addEventListener('click', function (e) {
   }
 });
 
-// Enviar mensaje por WhatsApp (ahora abre el grupo de WhatsApp)
+// Enviar mensaje por WhatsApp (mensaje generado dinámicamente)
 sendBtn.addEventListener('click', () => {
-  const groupUrl = 'https://chat.whatsapp.com/FD4bpsYN8tI3G00mru8gj9';
-  window.open(groupUrl, '_blank');
+  const mensaje = outputMessage.value.trim();
+  if (mensaje) {
+    const encoded = encodeURIComponent(mensaje);
+    const url = `https://wa.me/?text=${encoded}`;
+    window.open(url, '_blank');
+  }
 });
 
 // Inicializa mensaje y total
