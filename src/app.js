@@ -75,7 +75,7 @@ function updateMessage() {
 outputMessage.addEventListener('click', () => {
   if (!outputMessage.value || outputMessage.value.trim() === '') return;
   navigator.clipboard.writeText(outputMessage.value).then(() => {
-    copyStatus.textContent = 'Mensaje copiado ✔';
+    copyStatus.innerHTML = 'Mensaje<br> copiado ✔';
     copyStatus.classList.add('show');
     setTimeout(() => copyStatus.classList.remove('show'), 1500);
   });
