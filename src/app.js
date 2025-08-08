@@ -4,7 +4,7 @@ const flightInput = document.getElementById('flight');
 const categoryInputs = Array.from(document.querySelectorAll('.form-group input')).filter(input => !['flight', 'total'].includes(input.id));
 const normalesInput = document.getElementById('normales');
 const conexionesInput = document.getElementById('conexiones');
-const prioritariosInput = document.getElementById('prioritarios');
+const prioridadesInput = document.getElementById('prioridades');
 const standbyInput = document.getElementById('standby');
 const vipInput = document.getElementById('vip');
 const totalInput = document.getElementById('total');
@@ -39,7 +39,7 @@ function updateMessage() {
   const vuelo = flightInput.value.trim();
   const normales = getValidNumber(normalesInput);
   const conexiones = getValidNumber(conexionesInput);
-  const prioritarios = getValidNumber(prioritariosInput);
+  const prioridades = getValidNumber(prioridadesInput);
   const standby = getValidNumber(standbyInput);
   const vip = getValidNumber(vipInput);
 
@@ -50,24 +50,24 @@ function updateMessage() {
     return;
   }
 
-  const total = normales + conexiones + prioritarios + standby + vip;
-  totalInput.value = (normales || conexiones || prioritarios || standby || vip) ? total : '';
+  const total = normales + conexiones + prioridades + standby + vip;
+  totalInput.value = (normales || conexiones || prioridades || standby || vip) ? total : '';
 
   let msg = '';
   msg += `Vuelo LA ${vuelo}\n`;
   if (normales > 0) msg += `normales: ${normales}\n`;
   if (conexiones > 0) msg += `conexiones: ${conexiones}\n`;
-  if (prioritarios > 0) msg += `prioritarios: ${prioritarios}\n`;
+  if (prioridades > 0) msg += `prioridades: ${prioridades}\n`;
   if (standby > 0) msg += `stand by: ${standby}\n`;
   if (vip > 0) msg += `vip: ${vip}\n`;
-  if (normales || conexiones || prioritarios || standby || vip) {
+  if (normales || conexiones || prioridades || standby || vip) {
     msg += `total: ${total} bags`;
   }
   outputMessage.value = msg.trim();
 }
 
 // Eventos para inputs
-[flightInput, normalesInput, conexionesInput, prioritariosInput, standbyInput, vipInput].forEach(input => {
+[flightInput, normalesInput, conexionesInput, prioridadesInput, standbyInput, vipInput].forEach(input => {
   input.addEventListener('input', updateMessage);
 });
 
@@ -225,7 +225,7 @@ function saveFormData() {
     flight: flightInput.value,
     normales: normalesInput.value,
     conexiones: conexionesInput.value,
-    prioritarios: prioritariosInput.value,
+    prioridades: prioridadesInput.value,
     standby: standbyInput.value,
     vip: vipInput.value,
     total: totalInput.value,
@@ -246,7 +246,7 @@ function loadFormData() {
   if (data.flight) flightInput.value = data.flight;
   if (data.normales) normalesInput.value = data.normales;
   if (data.conexiones) conexionesInput.value = data.conexiones;
-  if (data.prioritarios) prioritariosInput.value = data.prioritarios;
+  if (data.prioridades) prioridadesInput.value = data.prioridades;
   if (data.standby) standbyInput.value = data.standby;
   if (data.vip) vipInput.value = data.vip;
   if (data.total) totalInput.value = data.total;
@@ -257,7 +257,7 @@ function loadFormData() {
 }
 
 // Guardar datos al cambiar cualquier input relevante
-[flightInput, normalesInput, conexionesInput, prioritariosInput, standbyInput, vipInput].forEach(input => {
+[flightInput, normalesInput, conexionesInput, prioridadesInput, standbyInput, vipInput].forEach(input => {
   input.addEventListener('input', saveFormData);
 });
 // Guardar también al generar mensaje
