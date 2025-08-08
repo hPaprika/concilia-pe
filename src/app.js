@@ -150,24 +150,28 @@ flightInput.addEventListener('input', function (e) {
 
 function updateInactiveEffects() {
   const flightFilled = flightInput.value.trim() !== '';
-  const anyCategoryFocused = categoryInputs.some(input => document.activeElement === input);
-  if (flightFilled && anyCategoryFocused) {
-    categoryInputs.forEach(input => {
-      const label = input.parentElement.querySelector('label');
-      if (!input.value && document.activeElement !== input) {
-        input.classList.add('inactive');
-        label.classList.add('inactive');
-      } else {
-        input.classList.remove('inactive');
-        label.classList.remove('inactive');
-      }
-    });
-  } else {
+  const activeInput = document.activeElement;
+
+  if (!flightFilled) {
+    // Si no hay vuelo, quitar opacidad de todos
     categoryInputs.forEach(input => {
       input.classList.remove('inactive');
       input.parentElement.querySelector('label').classList.remove('inactive');
     });
+    return;
   }
+
+  categoryInputs.forEach(input => {
+    const label = input.parentElement.querySelector('label');
+    // Solo aplicar 'inactive' si está vacío y no es el que tiene el foco
+    if (!input.value && activeInput !== input) {
+      input.classList.add('inactive');
+      label.classList.add('inactive');
+    } else {
+      input.classList.remove('inactive');
+      label.classList.remove('inactive');
+    }
+  });
 }
 
 flightInput.addEventListener('input', updateInactiveEffects);
