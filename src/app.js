@@ -85,7 +85,7 @@ outputMessage.addEventListener('click', () => {
 resetBtn.addEventListener('click', function () {
   document.getElementById('baggageForm').reset();
   outputMessage.value = '';
-  flightDestino.textContent = '';
+  updateFlightInfo();
   updateButtonState(); // Vuelve a deshabilitar los botones
   updateInactiveEffects(); // Vuelve a aplicar opacidad y efectos visuales
 });
@@ -141,11 +141,25 @@ const vuelos = {
   "2226": "LIM"
 };
 const flightDestino = document.getElementById('destino');
+const flightLogo = document.querySelector('.flight-logo');
+
+function updateFlightInfo() {
+  const flightValue = flightInput.value.trim();
+  const destino = vuelos[flightValue] || '';
+
+  flightDestino.textContent = destino;
+
+  if (destino) {
+    flightLogo.style.display = 'block';
+  } else {
+    flightLogo.style.display = 'none';
+  }
+}
+
 flightInput.addEventListener('input', function (e) {
   // Solo permitir números
   this.value = this.value.replace(/\D/g, '');
-  // Mostrar destino solo si hay match exacto
-  flightDestino.textContent = vuelos[this.value] || '';
+  updateFlightInfo();
 });
 
 function updateInactiveEffects() {
@@ -256,7 +270,7 @@ function loadFormData() {
   if (data.total) totalInput.value = data.total;
   if (data.output) outputMessage.value = data.output;
   // Actualizar destino visual
-  flightDestino.textContent = vuelos[flightInput.value] || '';
+  updateFlightInfo();
   updateButtonState(); // <-- Actualiza el estado de los botones tras restaurar
 }
 

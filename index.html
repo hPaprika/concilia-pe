@@ -7,7 +7,7 @@
   <title>ConciliaPe</title>
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Work+Sans&display=swap">
-  <link rel="stylesheet" href="src/styles/main.css">
+  <link rel="stylesheet" href="src/css/styles.css">
   <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 </head>
 
@@ -17,11 +17,12 @@
     <h1 class="brand">ConciliaPe</h1>
   </header>
   <main class="container">
-    <h2 class="title">Conciliación de Equipajes</h2>
     <form id="baggageForm" autocomplete="off">
+      <h2 class="title">Conciliación de Equipajes</h2>
       <div class="form-group flight-group input-wrapper">
         <label for="flight">Código de vuelo</label>
         <div class="flight-input-container">
+          <img src="assets/icons/latam.png" alt="latam logo" class="flight-logo">
           <span class="suffix" id="destino"></span>
           <input list="codigos" type="text" id="flight" name="flight" maxlength="4" pattern="\d{4}" inputmode="numeric"
             class="input-field" autocomplete="off">
