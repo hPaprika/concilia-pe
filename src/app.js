@@ -7,6 +7,8 @@ const conexionesInput = document.getElementById('conexiones');
 const prioridadesInput = document.getElementById('prioridades');
 const standbyInput = document.getElementById('standby');
 const vipInput = document.getElementById('vip');
+const gateInput = document.getElementById('gate');
+const avihInput = document.getElementById('avih');
 const totalInput = document.getElementById('total');
 const outputMessage = document.getElementById('outputMessage');
 const copyStatus = document.getElementById('copyStatus');
@@ -42,6 +44,8 @@ function updateMessage() {
   const prioridades = getValidNumber(prioridadesInput);
   const standby = getValidNumber(standbyInput);
   const vip = getValidNumber(vipInput);
+  const gate = getValidNumber(gateInput);
+  const avih = getValidNumber(avihInput);
 
   // Si el código de vuelo está vacío, no mostrar total ni mensaje
   if (!vuelo) {
@@ -50,8 +54,8 @@ function updateMessage() {
     return;
   }
 
-  const total = normales + conexiones + prioridades + standby + vip;
-  totalInput.value = (normales || conexiones || prioridades || standby || vip) ? total : '';
+  const total = normales + conexiones + prioridades + standby + vip + gate + avih;
+  totalInput.value = (normales || conexiones || prioridades || standby || vip || gate || avih) ? total : '';
 
   let msg = '';
   msg += `Vuelo LA ${vuelo}\n`;
@@ -60,14 +64,16 @@ function updateMessage() {
   if (prioridades > 0) msg += `prioridades: ${prioridades}\n`;
   if (standby > 0) msg += `stand by: ${standby}\n`;
   if (vip > 0) msg += `vip: ${vip}\n`;
-  if (normales || conexiones || prioridades || standby || vip) {
+  if (gate > 0) msg += `gate: ${gate}\n`;
+  if (avih > 0) msg += `avih: ${avih}\n`;
+  if (normales || conexiones || prioridades || standby || vip || gate || avih) {
     msg += `total: ${total} bags`;
   }
   outputMessage.value = msg.trim();
 }
 
 // Eventos para inputs
-[flightInput, normalesInput, conexionesInput, prioridadesInput, standbyInput, vipInput].forEach(input => {
+[flightInput, normalesInput, conexionesInput, prioridadesInput, standbyInput, vipInput, gateInput, avihInput].forEach(input => {
   input.addEventListener('input', updateMessage);
 });
 
@@ -246,6 +252,8 @@ function saveFormData() {
     prioridades: prioridadesInput.value,
     standby: standbyInput.value,
     vip: vipInput.value,
+    gate: gateInput.value,
+    avih: avihInput.value,
     total: totalInput.value,
     output: outputMessage.value
   };
@@ -267,6 +275,8 @@ function loadFormData() {
   if (data.prioridades) prioridadesInput.value = data.prioridades;
   if (data.standby) standbyInput.value = data.standby;
   if (data.vip) vipInput.value = data.vip;
+  if (data.gate) gateInput.value = data.gate;
+  if (data.avih) avihInput.value = data.avih;
   if (data.total) totalInput.value = data.total;
   if (data.output) outputMessage.value = data.output;
   // Actualizar destino visual
@@ -275,7 +285,7 @@ function loadFormData() {
 }
 
 // Guardar datos al cambiar cualquier input relevante
-[flightInput, normalesInput, conexionesInput, prioridadesInput, standbyInput, vipInput].forEach(input => {
+[flightInput, normalesInput, conexionesInput, prioridadesInput, standbyInput, vipInput, gateInput, avihInput].forEach(input => {
   input.addEventListener('input', saveFormData);
 });
 // Guardar también al generar mensaje
