@@ -37,6 +37,40 @@ function getValidNumber(input) {
 }
 
 // Actualiza el total y el mensaje generado en tiempo real
+// function updateMessage() {
+//   const vuelo = flightInput.value.trim();
+//   const normales = getValidNumber(normalesInput);
+//   const conexiones = getValidNumber(conexionesInput);
+//   const prioridades = getValidNumber(prioridadesInput);
+//   const standby = getValidNumber(standbyInput);
+//   const vip = getValidNumber(vipInput);
+//   const gate = getValidNumber(gateInput);
+//   const avih = getValidNumber(avihInput);
+
+//   // Si el código de vuelo está vacío, no mostrar total ni mensaje
+//   if (!vuelo) {
+//     totalInput.value = '';
+//     outputMessage.value = '';
+//     return;
+//   }
+
+//   const total = normales + conexiones + prioridades + standby + vip + gate + avih;
+//   totalInput.value = (normales || conexiones || prioridades || standby || vip || gate || avih) ? total : '';
+
+//   let msg = '';
+//   msg += `Vuelo LA ${vuelo}\n`;
+//   if (normales > 0) msg += `normales: ${normales}\n`;
+//   if (conexiones > 0) msg += `conexiones: ${conexiones}\n`;
+//   if (prioridades > 0) msg += `prioridades: ${prioridades}\n`;
+//   if (standby > 0) msg += `stand by: ${standby}\n`;
+//   if (vip > 0) msg += `vip: ${vip}\n`;
+//   if (gate > 0) msg += `gate: ${gate}\n`;
+//   if (avih > 0) msg += `avih: ${avih}\n`;
+//   if (normales || conexiones || prioridades || standby || vip || gate || avih) {
+//     msg += `total: ${total} bags`;
+//   }
+//   outputMessage.value = msg.trim();
+// }
 function updateMessage() {
   const vuelo = flightInput.value.trim();
   const normales = getValidNumber(normalesInput);
@@ -47,7 +81,6 @@ function updateMessage() {
   const gate = getValidNumber(gateInput);
   const avih = getValidNumber(avihInput);
 
-  // Si el código de vuelo está vacío, no mostrar total ni mensaje
   if (!vuelo) {
     totalInput.value = '';
     outputMessage.value = '';
@@ -57,18 +90,26 @@ function updateMessage() {
   const total = normales + conexiones + prioridades + standby + vip + gate + avih;
   totalInput.value = (normales || conexiones || prioridades || standby || vip || gate || avih) ? total : '';
 
-  let msg = '';
-  msg += `Vuelo LA ${vuelo}\n`;
-  if (normales > 0) msg += `normales: ${normales}\n`;
-  if (conexiones > 0) msg += `conexiones: ${conexiones}\n`;
-  if (prioridades > 0) msg += `prioridades: ${prioridades}\n`;
-  if (standby > 0) msg += `stand by: ${standby}\n`;
-  if (vip > 0) msg += `vip: ${vip}\n`;
-  if (gate > 0) msg += `gate: ${gate}\n`;
-  if (avih > 0) msg += `avih: ${avih}\n`;
-  if (normales || conexiones || prioridades || standby || vip || gate || avih) {
-    msg += `total: ${total} bags`;
+  // --- Alineación de columnas ---
+  const categorias = [];
+  if (normales > 0) categorias.push({ cantidad: normales, nombre: 'normales' });
+  if (conexiones > 0) categorias.push({ cantidad: conexiones, nombre: 'conexiones' });
+  if (prioridades > 0) categorias.push({ cantidad: prioridades, nombre: 'prioridades' });
+  if (standby > 0) categorias.push({ cantidad: standby, nombre: 'stand by' });
+  if (vip > 0) categorias.push({ cantidad: vip, nombre: 'vip' });
+  if (gate > 0) categorias.push({ cantidad: gate, nombre: 'gate' });
+  if (avih > 0) categorias.push({ cantidad: avih, nombre: 'avih' });
+
+  const ancho = Math.max(...categorias.map(c => String(c.cantidad).length), 2); // mínimo 2 dígitos
+  const msgCategorias = categorias
+    .map(c => String(c.cantidad).padStart(ancho, '0') + ' ' + c.nombre)
+    .join('\n');
+
+  let msg = `Vuelo LA ${vuelo}\n${msgCategorias}`;
+  if (categorias.length) {
+    msg += `\n${'total: ' + total + ' bags'}`;
   }
+  
   outputMessage.value = msg.trim();
 }
 
