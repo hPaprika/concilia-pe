@@ -9,6 +9,10 @@
     href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Work+Sans&display=swap">
   <link rel="stylesheet" href="src/css/styles.css">
   <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+   <link rel="preload" as="image" href="assets/icons/latam.webp">
+  <link rel="preload" as="image" href="assets/icons/jetsmart.webp">
+  <link rel="preload" as="image" href="assets/icons/avianca.webp">
+  <link rel="preload" as="image" href="assets/icons/sky.webp">
 </head>
 
 <body>
@@ -20,9 +24,9 @@
     <form id="baggageForm" autocomplete="off">
       <h2 class="title">Conciliación de Equipajes</h2>
       <div class="form-group flight-group input-wrapper">
-        <label for="flight">Código de vuelo</label>
+        <label for="flight">Número de vuelo</label>
         <div class="flight-input-container">
-          <img src="assets/icons/latam.png" alt="latam logo" class="flight-logo" width="69" height="69">
+          <img src="assets/icons/latam.webp" alt="latam logo" class="flight-logo" width="69" height="69">
           <span class="suffix" id="destino"></span>
           <input list="codigos" type="text" id="flight" name="flight" maxlength="4" pattern="\d{4}" inputmode="numeric"
             class="input-field" autocomplete="off">

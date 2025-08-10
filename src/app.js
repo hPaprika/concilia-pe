@@ -1,352 +1,284 @@
-// Selección de elementos
-const form = document.getElementById('baggageForm');
-const flightInput = document.getElementById('flight');
-const categoryInputs = Array.from(document.querySelectorAll('.form-group input')).filter(input => !['flight', 'total'].includes(input.id));
-const normalesInput = document.getElementById('normales');
-const conexionesInput = document.getElementById('conexiones');
-const prioridadesInput = document.getElementById('prioridades');
-const standbyInput = document.getElementById('standby');
-const vipInput = document.getElementById('vip');
-const gateInput = document.getElementById('gate');
-const avihInput = document.getElementById('avih');
-const totalInput = document.getElementById('total');
+// 1. Constants and DOM Elements
+const BAGGAGE_FORM_ID = 'baggageForm';
+const FLIGHT_INPUT_ID = 'flight';
+const TOTAL_INPUT_ID = 'total';
+
+const baggageForm = document.getElementById(BAGGAGE_FORM_ID);
+const flightInput = document.getElementById(FLIGHT_INPUT_ID);
+const totalInput = document.getElementById(TOTAL_INPUT_ID);
 const outputMessage = document.getElementById('outputMessage');
 const copyStatus = document.getElementById('copyStatus');
 const resetBtn = document.getElementById('resetBtn');
 const sendBtn = document.getElementById('sendBtn');
+const flightDestinationEl = document.getElementById('destino');
+const flightLogoEl = document.querySelector('.flight-logo');
 
-function addPressed(btn) {
-  btn.classList.add('pressed');
-}
-function removePressed(btn) {
-  btn.classList.remove('pressed');
-}
-['touchstart', 'mousedown'].forEach(evt => {
-  sendBtn.addEventListener(evt, () => addPressed(sendBtn));
-  resetBtn.addEventListener(evt, () => addPressed(resetBtn));
-});
-['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(evt => {
-  sendBtn.addEventListener(evt, () => removePressed(sendBtn));
-  resetBtn.addEventListener(evt, () => removePressed(resetBtn));
-});
+const categoryInputs = Array.from(document.querySelectorAll('.form-group input')).filter(
+  (input) => ![FLIGHT_INPUT_ID, TOTAL_INPUT_ID].includes(input.id)
+);
 
-// Validación: solo números positivos o vacío
-function getValidNumber(input) {
-  const val = input.value.trim();
-  return val === '' ? 0 : Math.max(0, parseInt(val, 10) || 0);
-}
+const allInputs = [flightInput, ...categoryInputs];
 
-// Actualiza el total y el mensaje generado en tiempo real
+// 2. Data and Configuration
+const FLIGHT_DESTINATIONS = {
+  // LATAM
+  "2004": "LIM", "2006": "LIM", "2010": "LIM", "2328": "AQP", "2188": "LIM",
+  "2366": "SCL", "2018": "LIM", "2129": "LIM", "2008": "LIM", "2142": "LIM",
+  "2320": "PEM", "2029": "LIM", "2025": "LIM", "2016": "LIM", "2151": "LIM",
+  "2133": "PEM", "2046": "LIM", "2022": "LIM", "2042": "LIM", "2121": "LIM",
+  "2277": "LIM", "2325": "AQP", "2026": "LIM", "2031": "LIM", "2106": "LIM",
+  "2034": "LIM", "2218": "LIM", "2044": "LIM", "2040": "LIM", "2363": "LIM",
+  "2064": "LIM", "2224": "LIM", "2201": "LIM", "2226": "LIM",
+  // AVIANCA
+  "80": "BOG", "104": "BOG", "105": "LPB"
+};
+
+const AIRLINE_CONFIG = {
+  '2': { name: 'LA', logo: 'assets/icons/latam.webp' },
+  '5': { name: 'Sky', logo: 'assets/icons/sky.webp' },
+  '7': { name: 'JetSmart', logo: 'assets/icons/jetsmart.webp' },
+  'AV': { name: 'AV', logo: 'assets/icons/avianca.webp' }
+};
+
+const AVIANCA_FLIGHTS = ["80", "104", "105"];
+
+const STORAGE_KEY = 'baggageFormData';
+const STORAGE_EXP_KEY = 'baggageFormDataExpiration';
+const STORAGE_EXPIRATION_MS = 24 * 60 * 60 * 1000;
+
 let currentAirlineName = '';
 
-function updateMessage() {
-  const vuelo = flightInput.value.trim();
-  const normales = getValidNumber(normalesInput);
-  const conexiones = getValidNumber(conexionesInput);
-  const prioridades = getValidNumber(prioridadesInput);
-  const standby = getValidNumber(standbyInput);
-  const vip = getValidNumber(vipInput);
-  const gate = getValidNumber(gateInput);
-  const avih = getValidNumber(avihInput);
+// 3. Utility Functions
+const getNumericValue = (input) => {
+  const value = input.value.trim();
+  return value === '' ? 0 : Math.max(0, parseInt(value, 10) || 0);
+};
 
-  if (!vuelo) {
+const getAirlineInfo = (flightNumber) => {
+  if (AVIANCA_FLIGHTS.includes(flightNumber)) {
+    return AIRLINE_CONFIG['AV'];
+  }
+  if (/^\d{4}$/.test(flightNumber)) {
+    const firstDigit = flightNumber.charAt(0);
+    return AIRLINE_CONFIG[firstDigit] || null;
+  }
+  return null;
+};
+
+const getDestinationInfo = (flightNumber) => {
+    const destCode = FLIGHT_DESTINATIONS[flightNumber];
+    if (!destCode) return '';
+
+    let flag = '';
+    if (destCode === 'BOG') flag = ' 🇨🇴';
+    else if (destCode === 'LPB') flag = ' 🇧🇴';
+
+    return ` ${destCode}${flag}`;
+};
+
+// 4. UI Update Functions
+const updateFlightDetails = () => {
+  const flightNumber = flightInput.value.trim();
+  const airlineInfo = getAirlineInfo(flightNumber);
+
+  flightDestinationEl.textContent = FLIGHT_DESTINATIONS[flightNumber] || '';
+
+  if (airlineInfo) {
+    flightLogoEl.src = airlineInfo.logo;
+    flightLogoEl.style.display = 'block';
+    currentAirlineName = airlineInfo.name;
+  } else {
+    flightLogoEl.style.display = 'none';
+    currentAirlineName = '';
+  }
+  updateSummaryMessage();
+};
+
+const updateSummaryMessage = () => {
+  const flightNumber = flightInput.value.trim();
+  if (!flightNumber) {
     totalInput.value = '';
     outputMessage.value = '';
     return;
   }
 
-  const total = normales + conexiones + prioridades + standby + vip + gate + avih;
-  totalInput.value = (normales || conexiones || prioridades || standby || vip || gate || avih) ? total : '';
+  const categories = categoryInputs
+    .map(input => ({
+      name: input.id === 'standby' ? 'stand by' : input.id,
+      count: getNumericValue(input)
+    }))
+    .filter(cat => cat.count > 0);
 
-  // --- Alineación de columnas ---
-  const categorias = [];
-  if (normales > 0) categorias.push({ cantidad: normales, nombre: 'normales' });
-  if (conexiones > 0) categorias.push({ cantidad: conexiones, nombre: 'conexiones' });
-  if (prioridades > 0) categorias.push({ cantidad: prioridades, nombre: 'prioridades' });
-  if (standby > 0) categorias.push({ cantidad: standby, nombre: 'stand by' });
-  if (vip > 0) categorias.push({ cantidad: vip, nombre: 'vip' });
-  if (gate > 0) categorias.push({ cantidad: gate, nombre: 'gate' });
-  if (avih > 0) categorias.push({ cantidad: avih, nombre: 'avih' });
+  const totalBags = categories.reduce((sum, cat) => sum + cat.count, 0);
+  totalInput.value = totalBags > 0 ? totalBags : '';
 
-  const ancho = Math.max(...categorias.map(c => String(c.cantidad).length), 2); // mínimo 2 dígitos
-  const msgCategorias = categorias
-    .map(c => String(c.cantidad).padStart(ancho, '0') + ' ' + c.nombre)
+  // Per original functionality, destination in message is only for Avianca
+  const isAviancaFlight = AVIANCA_FLIGHTS.includes(flightNumber);
+  const destinationInfo = isAviancaFlight ? getDestinationInfo(flightNumber) : '';
+  const flightHeader = `Vuelo ${currentAirlineName || ''} ${flightNumber}${destinationInfo}`;
+
+  if (totalBags === 0) {
+      outputMessage.value = flightHeader.trim();
+      return;
+  }
+
+  const padWidth = Math.max(...categories.map(c => String(c.count).length), 2);
+  const categoriesText = categories
+    .map(c => `${String(c.count).padStart(padWidth, '0')} ${c.name}`)
     .join('\n');
 
-  const isAvianca = ['80', '104', '105'].includes(vuelo);
-  let destino = '';
-  if (isAvianca && vuelos[vuelo]) {
-    const destCode = vuelos[vuelo];
-    let flag = '';
-    if (destCode === 'BOG') {
-      flag = ' 🇨🇴';
-    } else if (destCode === 'LPB') {
-      flag = ' 🇧🇴';
-    }
-    destino = ` ${destCode}${flag}`;
-  }
-  let msg = `Vuelo ${currentAirlineName || ''} ${vuelo}${destino}\n${msgCategorias}`;
-  if (categorias.length) {
-    msg += `\n${'total: ' + total + ' bags'}`;
-  }
+  const totalFooter = `total: ${totalBags} bags`;
 
-  outputMessage.value = msg.trim();
-}
-
-// Eventos para inputs
-[flightInput, normalesInput, conexionesInput, prioridadesInput, standbyInput, vipInput, gateInput, avihInput].forEach(input => {
-  input.addEventListener('input', updateMessage);
-});
-
-// Copiado al tocar el textarea
-outputMessage.addEventListener('click', () => {
-  if (!outputMessage.value || outputMessage.value.trim() === '') return;
-  navigator.clipboard.writeText(outputMessage.value).then(() => {
-    copyStatus.innerHTML = 'Mensaje<br> copiado ✔';
-    copyStatus.classList.add('show');
-    setTimeout(() => copyStatus.classList.remove('show'), 1500);
-  });
-});
-
-// Reiniciar formulario y mensaje
-resetBtn.addEventListener('click', function () {
-  document.getElementById('baggageForm').reset();
-  outputMessage.value = '';
-  updateFlightInfo();
-  updateButtonState(); // Vuelve a deshabilitar los botones
-  updateInactiveEffects(); // Vuelve a aplicar opacidad y efectos visuales
-});
-
-// Enviar mensaje por WhatsApp (mensaje generado dinámicamente)
-sendBtn.addEventListener('click', () => {
-  const mensaje = outputMessage.value.trim();
-  if (mensaje) {
-    const encoded = encodeURIComponent(mensaje);
-    const url = `https://wa.me/?text=${encoded}`;
-    window.open(url, '_blank');
-  }
-});
-
-// Inicializa mensaje y total
-updateMessage();
-
-// --- Vuelos destino abreviado ---
-const vuelos = {
-  "2004": "LIM",
-  "2006": "LIM",
-  "2010": "LIM",
-  "2328": "AQP",
-  "2188": "LIM",
-  "2366": "SCL",
-  "2018": "LIM",
-  "2129": "LIM",
-  "2008": "LIM",
-  "2142": "LIM",
-  "2320": "PEM",
-  "2029": "LIM",
-  "2025": "LIM",
-  "2016": "LIM",
-  "2151": "LIM",
-  "2133": "PEM",
-  "2046": "LIM",
-  "2022": "LIM",
-  "2042": "LIM",
-  "2121": "LIM",
-  "2277": "LIM",
-  "2325": "AQP",
-  "2026": "LIM",
-  "2031": "LIM",
-  "2106": "LIM",
-  "2034": "LIM",
-  "2218": "LIM",
-  "2044": "LIM",
-  "2040": "LIM",
-  "2363": "LIM",
-  "2064": "LIM",
-  "2224": "LIM",
-  "2201": "LIM",
-  "2226": "LIM",
-  // vuelos de avianca
-  "80": "BOG",
-  "104": "BOG",
-  "105": "LPB"
+  outputMessage.value = `${flightHeader}\n${categoriesText}\n${totalFooter}`.trim();
 };
-const flightDestino = document.getElementById('destino');
-const flightLogo = document.querySelector('.flight-logo');
 
-function updateFlightInfo() {
-  const flightValue = flightInput.value.trim();
-  const destino = vuelos[flightValue] || '';
-  flightDestino.textContent = destino;
+const updateButtonStates = () => {
+  const isFlightFilled = flightInput.value.trim() !== '';
+  const areAnyCategoriesFilled = categoryInputs.some(input => input.value.trim() !== '');
+  const isEnabled = isFlightFilled || areAnyCategoriesFilled;
 
-  // Mostrar logo según aerolínea
-  let logoSrc = '';
-  let airlineName = '';
+  sendBtn.disabled = !isEnabled;
+  resetBtn.disabled = !isEnabled;
+};
 
-  if (/^\d{4}$/.test(flightValue)) { // si tiene 4 dígitos exactos
-    const firstDigit = flightValue.charAt(0);
-    if (firstDigit === '2') {
-      logoSrc = 'assets/icons/latam.png';
-      airlineName = 'LA';
-    } else if (firstDigit === '5') {
-      logoSrc = 'assets/icons/sky.png';
-      airlineName = 'Sky';
-    } else if (firstDigit === '7') {
-      logoSrc = 'assets/icons/jetsmart.png';
-      airlineName = 'JetSmart';
-    }
-  } else if (['80', '104', '105'].includes(flightValue)) {
-    logoSrc = 'assets/icons/avianca.png';
-    airlineName = 'AV';
-  }
-
-  currentAirlineName = airlineName;
-
-  if (logoSrc) {
-    flightLogo.src = logoSrc;
-    flightLogo.style.display = 'block';
-  } else {
-    flightLogo.style.display = 'none';
-    currentAirlineName = ''; // Reset airline name if no logo is shown
-  }
-  updateMessage(); // Actualizar mensaje al cambiar vuelo
-}
-
-
-flightInput.addEventListener('input', function (e) {
-  // Solo permitir números
-  this.value = this.value.replace(/\D/g, '');
-  updateFlightInfo();
-});
-
-function updateInactiveEffects() {
-  const flightFilled = flightInput.value.trim() !== '';
-  const activeInput = document.activeElement;
-
-  if (!flightFilled) {
-    // Si no hay vuelo, quitar opacidad de todos
-    categoryInputs.forEach(input => {
-      input.classList.remove('inactive');
-      input.parentElement.querySelector('label').classList.remove('inactive');
-    });
-    return;
-  }
+const updateInputStyles = () => {
+  const isFlightFilled = flightInput.value.trim() !== '';
+  const activeElement = document.activeElement;
 
   categoryInputs.forEach(input => {
     const label = input.parentElement.querySelector('label');
-    // Solo aplicar 'inactive' si está vacío y no es el que tiene el foco
-    if (!input.value && activeInput !== input) {
-      input.classList.add('inactive');
-      label.classList.add('inactive');
-    } else {
-      input.classList.remove('inactive');
-      label.classList.remove('inactive');
-    }
+    const isInFocus = activeElement === input;
+    const isEmpty = !input.value;
+    // Style as 'inactive' if flight is filled, input is empty, and not in focus.
+    const shouldBeInactive = isFlightFilled && isEmpty && !isInFocus;
+
+    input.classList.toggle('inactive', shouldBeInactive);
+    label.classList.toggle('inactive', shouldBeInactive);
   });
-}
+};
 
-flightInput.addEventListener('input', updateInactiveEffects);
-categoryInputs.forEach(input => {
-  input.addEventListener('focus', updateInactiveEffects);
-  input.addEventListener('blur', updateInactiveEffects);
-  input.addEventListener('input', updateInactiveEffects);
-});
+// 5. Local Storage Functions
+const saveFormDataToStorage = () => {
+  const data = allInputs.reduce((acc, input) => {
+    acc[input.id] = input.value;
+    return acc;
+  }, {});
+  data.total = totalInput.value;
+  data.output = outputMessage.value;
 
-document.querySelectorAll('.form-group input').forEach(input => {
-  const label = input.parentElement.querySelector('label');
-  if (input.id === 'flight' || input.id === 'total') return;
-  input.addEventListener('focus', function () {
-    label.classList.add('active');
-    input.classList.remove('inactive');
-    label.classList.remove('inactive');
-  });
-  input.addEventListener('blur', function () {
-    label.classList.remove('active');
-    if (!input.value) {
-      input.classList.add('inactive');
-      label.classList.add('inactive');
-    }
-  });
-  input.addEventListener('input', function () {
-    if (input.value) {
-      input.classList.remove('inactive');
-      label.classList.remove('inactive');
-    } else if (document.activeElement !== input) {
-      input.classList.add('inactive');
-      label.classList.add('inactive');
-    }
-  });
-});
-
-function updateButtonState() {
-  const flightFilled = flightInput.value.trim() !== '';
-  const anyCategoryFilled = categoryInputs.some(input => input.value.trim() !== '');
-  const enable = flightFilled || anyCategoryFilled;
-  sendBtn.disabled = !enable;
-  resetBtn.disabled = !enable;
-}
-flightInput.addEventListener('input', updateButtonState);
-categoryInputs.forEach(input => {
-  input.addEventListener('input', updateButtonState);
-});
-updateButtonState();
-
-// --- Persistencia con localStorage (expira en 24h) ---
-const STORAGE_KEY = 'conciliaFormData';
-const STORAGE_EXP_KEY = 'conciliaFormDataExp';
-
-function saveFormData() {
-  const data = {
-    flight: flightInput.value,
-    normales: normalesInput.value,
-    conexiones: conexionesInput.value,
-    prioridades: prioridadesInput.value,
-    standby: standbyInput.value,
-    vip: vipInput.value,
-    gate: gateInput.value,
-    avih: avihInput.value,
-    total: totalInput.value,
-    output: outputMessage.value
-  };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   localStorage.setItem(STORAGE_EXP_KEY, Date.now().toString());
-}
+};
 
-function loadFormData() {
-  const exp = parseInt(localStorage.getItem(STORAGE_EXP_KEY), 10);
-  if (!exp || (Date.now() - exp) > 24 * 60 * 60 * 1000) {
+const loadFormDataFromStorage = () => {
+  const expiration = parseInt(localStorage.getItem(STORAGE_EXP_KEY), 10);
+  if (!expiration || (Date.now() - expiration) > STORAGE_EXPIRATION_MS) {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_EXP_KEY);
     return;
   }
+
   const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-  if (data.flight) flightInput.value = data.flight;
-  if (data.normales) normalesInput.value = data.normales;
-  if (data.conexiones) conexionesInput.value = data.conexiones;
-  if (data.prioridades) prioridadesInput.value = data.prioridades;
-  if (data.standby) standbyInput.value = data.standby;
-  if (data.vip) vipInput.value = data.vip;
-  if (data.gate) gateInput.value = data.gate;
-  if (data.avih) avihInput.value = data.avih;
+  if (Object.keys(data).length === 0) return;
+
+  allInputs.forEach(input => {
+    if (data[input.id]) input.value = data[input.id];
+  });
   if (data.total) totalInput.value = data.total;
   if (data.output) outputMessage.value = data.output;
-  // Actualizar destino visual
-  updateFlightInfo();
-  updateButtonState(); // <-- Actualiza el estado de los botones tras restaurar
-}
 
-// Guardar datos al cambiar cualquier input relevante
-[flightInput, normalesInput, conexionesInput, prioridadesInput, standbyInput, vipInput, gateInput, avihInput].forEach(input => {
-  input.addEventListener('input', saveFormData);
-});
-// Guardar también al generar mensaje
-outputMessage.addEventListener('input', saveFormData);
+  updateFlightDetails();
+  updateButtonStates();
+  updateInputStyles();
+};
 
-// Limpiar storage al reiniciar
-resetBtn.addEventListener('click', function () {
+// 6. Event Handlers
+const handleFormReset = () => {
+  baggageForm.reset();
+  outputMessage.value = '';
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(STORAGE_EXP_KEY);
-});
+  updateFlightDetails();
+  updateButtonStates();
+  updateInputStyles();
+};
 
-// Cargar datos al iniciar
-window.addEventListener('DOMContentLoaded', loadFormData);
+const handleSend = () => {
+  const message = outputMessage.value.trim();
+  if (message) {
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+  }
+};
+
+const handleCopyToClipboard = () => {
+  const message = outputMessage.value.trim();
+  if (!message) return;
+
+  navigator.clipboard.writeText(message).then(() => {
+    copyStatus.innerHTML = 'Texto<br>copiado ✔';
+    copyStatus.classList.add('show');
+    setTimeout(() => copyStatus.classList.remove('show'), 1500);
+  });
+};
+
+const handleButtonPressEffect = (event) => {
+    const btn = event.currentTarget;
+    const pressEvents = ['touchstart', 'mousedown'];
+    if (pressEvents.includes(event.type)) {
+        btn.classList.add('pressed');
+    } else {
+        btn.classList.remove('pressed');
+    }
+};
+
+const handleInputInteraction = (event) => {
+    const input = event.target;
+    const label = input.parentElement.querySelector('label');
+
+    if (event.type === 'focus') {
+        label.classList.add('active');
+    } else if (event.type === 'blur') {
+        label.classList.remove('active');
+    }
+    updateInputStyles();
+};
+
+// 7. Event Listeners Setup
+const setupEventListeners = () => {
+  window.addEventListener('DOMContentLoaded', loadFormDataFromStorage);
+
+  flightInput.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '');
+    updateFlightDetails();
+    updateButtonStates();
+    updateInputStyles();
+    saveFormDataToStorage();
+  });
+
+  categoryInputs.forEach(input => {
+    input.addEventListener('input', () => {
+      updateSummaryMessage();
+      updateButtonStates();
+      updateInputStyles();
+      saveFormDataToStorage();
+    });
+    input.addEventListener('focus', handleInputInteraction);
+    input.addEventListener('blur', handleInputInteraction);
+  });
+
+  resetBtn.addEventListener('click', handleFormReset);
+  sendBtn.addEventListener('click', handleSend);
+  outputMessage.addEventListener('click', handleCopyToClipboard);
+
+  [sendBtn, resetBtn].forEach(btn => {
+      ['touchstart', 'mousedown', 'touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(evt => {
+          btn.addEventListener(evt, handleButtonPressEffect);
+      });
+  });
+};
+
+// 8. Initialization
+setupEventListeners();
+updateButtonStates();
+updateInputStyles();
