@@ -73,7 +73,19 @@ function updateMessage() {
     .map(c => String(c.cantidad).padStart(ancho, '0') + ' ' + c.nombre)
     .join('\n');
 
-  let msg = `Vuelo ${currentAirlineName || 'LA'} ${vuelo}\n${msgCategorias}`;
+  const isAvianca = ['80', '104', '105'].includes(vuelo);
+  let destino = '';
+  if (isAvianca && vuelos[vuelo]) {
+    const destCode = vuelos[vuelo];
+    let flag = '';
+    if (destCode === 'BOG') {
+      flag = ' 🇨🇴';
+    } else if (destCode === 'LPB') {
+      flag = ' 🇧🇴';
+    }
+    destino = ` ${destCode}${flag}`;
+  }
+  let msg = `Vuelo ${currentAirlineName || ''} ${vuelo}${destino}\n${msgCategorias}`;
   if (categorias.length) {
     msg += `\n${'total: ' + total + ' bags'}`;
   }
@@ -153,7 +165,11 @@ const vuelos = {
   "2064": "LIM",
   "2224": "LIM",
   "2201": "LIM",
-  "2226": "LIM"
+  "2226": "LIM",
+  // vuelos de avianca
+  "80": "BOG",
+  "104": "BOG",
+  "105": "LPB"
 };
 const flightDestino = document.getElementById('destino');
 const flightLogo = document.querySelector('.flight-logo');
@@ -164,14 +180,14 @@ function updateFlightInfo() {
   flightDestino.textContent = destino;
 
   // Mostrar logo según aerolínea
+  let logoSrc = '';
+  let airlineName = '';
+
   if (/^\d{4}$/.test(flightValue)) { // si tiene 4 dígitos exactos
     const firstDigit = flightValue.charAt(0);
-    let logoSrc = '';
-    let airlineName = '';
-
     if (firstDigit === '2') {
       logoSrc = 'assets/icons/latam.png';
-      // airlineName = 'Latam';
+      airlineName = 'LA';
     } else if (firstDigit === '5') {
       logoSrc = 'assets/icons/sky.png';
       airlineName = 'Sky';
@@ -179,17 +195,19 @@ function updateFlightInfo() {
       logoSrc = 'assets/icons/jetsmart.png';
       airlineName = 'JetSmart';
     }
-    currentAirlineName = airlineName;
+  } else if (['80', '104', '105'].includes(flightValue)) {
+    logoSrc = 'assets/icons/avianca.png';
+    airlineName = 'AV';
+  }
 
-    if (logoSrc) {
-      flightLogo.src = logoSrc;
-      flightLogo.style.display = 'block';
-    } else {
-      flightLogo.style.display = 'none';
-    }
+  currentAirlineName = airlineName;
+
+  if (logoSrc) {
+    flightLogo.src = logoSrc;
+    flightLogo.style.display = 'block';
   } else {
     flightLogo.style.display = 'none';
-    currentAirlineName = '';
+    currentAirlineName = ''; // Reset airline name if no logo is shown
   }
   updateMessage(); // Actualizar mensaje al cambiar vuelo
 }
