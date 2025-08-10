@@ -37,40 +37,8 @@ function getValidNumber(input) {
 }
 
 // Actualiza el total y el mensaje generado en tiempo real
-// function updateMessage() {
-//   const vuelo = flightInput.value.trim();
-//   const normales = getValidNumber(normalesInput);
-//   const conexiones = getValidNumber(conexionesInput);
-//   const prioridades = getValidNumber(prioridadesInput);
-//   const standby = getValidNumber(standbyInput);
-//   const vip = getValidNumber(vipInput);
-//   const gate = getValidNumber(gateInput);
-//   const avih = getValidNumber(avihInput);
+let currentAirlineName = '';
 
-//   // Si el código de vuelo está vacío, no mostrar total ni mensaje
-//   if (!vuelo) {
-//     totalInput.value = '';
-//     outputMessage.value = '';
-//     return;
-//   }
-
-//   const total = normales + conexiones + prioridades + standby + vip + gate + avih;
-//   totalInput.value = (normales || conexiones || prioridades || standby || vip || gate || avih) ? total : '';
-
-//   let msg = '';
-//   msg += `Vuelo LA ${vuelo}\n`;
-//   if (normales > 0) msg += `normales: ${normales}\n`;
-//   if (conexiones > 0) msg += `conexiones: ${conexiones}\n`;
-//   if (prioridades > 0) msg += `prioridades: ${prioridades}\n`;
-//   if (standby > 0) msg += `stand by: ${standby}\n`;
-//   if (vip > 0) msg += `vip: ${vip}\n`;
-//   if (gate > 0) msg += `gate: ${gate}\n`;
-//   if (avih > 0) msg += `avih: ${avih}\n`;
-//   if (normales || conexiones || prioridades || standby || vip || gate || avih) {
-//     msg += `total: ${total} bags`;
-//   }
-//   outputMessage.value = msg.trim();
-// }
 function updateMessage() {
   const vuelo = flightInput.value.trim();
   const normales = getValidNumber(normalesInput);
@@ -105,11 +73,11 @@ function updateMessage() {
     .map(c => String(c.cantidad).padStart(ancho, '0') + ' ' + c.nombre)
     .join('\n');
 
-  let msg = `Vuelo LA ${vuelo}\n${msgCategorias}`;
+  let msg = `Vuelo ${currentAirlineName || 'LA'} ${vuelo}\n${msgCategorias}`;
   if (categorias.length) {
     msg += `\n${'total: ' + total + ' bags'}`;
   }
-  
+
   outputMessage.value = msg.trim();
 }
 
@@ -193,15 +161,39 @@ const flightLogo = document.querySelector('.flight-logo');
 function updateFlightInfo() {
   const flightValue = flightInput.value.trim();
   const destino = vuelos[flightValue] || '';
-
   flightDestino.textContent = destino;
 
-  if (destino) {
-    flightLogo.style.display = 'block';
+  // Mostrar logo según aerolínea
+  if (/^\d{4}$/.test(flightValue)) { // si tiene 4 dígitos exactos
+    const firstDigit = flightValue.charAt(0);
+    let logoSrc = '';
+    let airlineName = '';
+
+    if (firstDigit === '2') {
+      logoSrc = 'assets/icons/latam.png';
+      // airlineName = 'Latam';
+    } else if (firstDigit === '5') {
+      logoSrc = 'assets/icons/sky.png';
+      airlineName = 'Sky';
+    } else if (firstDigit === '7') {
+      logoSrc = 'assets/icons/jetsmart.png';
+      airlineName = 'JetSmart';
+    }
+    currentAirlineName = airlineName;
+
+    if (logoSrc) {
+      flightLogo.src = logoSrc;
+      flightLogo.style.display = 'block';
+    } else {
+      flightLogo.style.display = 'none';
+    }
   } else {
     flightLogo.style.display = 'none';
+    currentAirlineName = '';
   }
+  updateMessage(); // Actualizar mensaje al cambiar vuelo
 }
+
 
 flightInput.addEventListener('input', function (e) {
   // Solo permitir números
