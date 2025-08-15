@@ -106,7 +106,7 @@ body {
   width: clamp(320px, 100%, 370px);
   margin-inline: auto;
   margin-block-end: 1.2rem;
-  padding-inline: calc(var(--spacing-m) + 6vw);
+  padding-inline: calc(var(--spacing-m) + 7vw);
 
   @media (width >= 480px) {
     /* width: clamp(320px, 100%, 450px); */

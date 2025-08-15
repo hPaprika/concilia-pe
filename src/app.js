@@ -96,41 +96,53 @@ const updateFlightDetails = () => {
 
 const updateSummaryMessage = () => {
   const flightNumber = flightInput.value.trim();
+
   if (!flightNumber) {
     totalInput.value = '';
     outputMessage.value = '';
     return;
   }
 
+  // Construimos arreglo con categorías activas
   const categories = categoryInputs
-    .map(input => ({
-      name: input.id === 'standby' ? 'stand by' : input.id,
-      count: getNumericValue(input)
+    .map(({ id, value }) => ({
+      name: id === 'standby' ? 'stand by' : id,
+      count: getNumericValue({ value })
     }))
-    .filter(cat => cat.count > 0);
+    .filter(({ count }) => count > 0);
 
-  const totalBags = categories.reduce((sum, cat) => sum + cat.count, 0);
+  const totalBags = categories.reduce((sum, { count }) => sum + count, 0);
   totalInput.value = totalBags > 0 ? totalBags : '';
 
-  // Per original functionality, destination in message is only for Avianca
   const isAviancaFlight = AVIANCA_FLIGHTS.includes(flightNumber);
   const destinationInfo = isAviancaFlight ? getDestinationInfo(flightNumber) : '';
   const flightHeader = `Vuelo ${currentAirlineName || ''} ${flightNumber}${destinationInfo}`;
 
   if (totalBags === 0) {
-      outputMessage.value = flightHeader.trim();
-      return;
+    outputMessage.value = flightHeader.trim();
+    return;
   }
 
-  const padWidth = Math.max(...categories.map(c => String(c.count).length), 2);
+  // Pluralización para las categorías especiales
+  const singularForms = new Map([
+    ['normales', 'normal'],
+    ['conexiones', 'conexión'],
+    ['prioridades', 'prioridad']
+  ]);
+
   const categoriesText = categories
-    .map(c => `${String(c.count).padStart(padWidth, '0')} ${c.name}`)
+    .map(({ name, count }) => {
+      const countStr = count >= 100 ? String(count) : String(count).padStart(2, '0');
+      const displayName = count === 1 && singularForms.has(name) ? singularForms.get(name) : name;
+      return `${countStr} ${displayName}`;
+    })
     .join('\n');
 
-  const totalFooter = `total: ${totalBags} bags`;
+  const totalFooter = `total: ${totalBags} bag${totalBags !== 1 ? 's' : ''}`;
 
   outputMessage.value = `${flightHeader}\n${categoriesText}\n${totalFooter}`.trim();
 };
+
 
 const updateButtonStates = () => {
   const isFlightFilled = flightInput.value.trim() !== '';
