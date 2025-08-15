@@ -1,0 +1,26 @@
+{
+  "theme_color": "#1a3072",
+  "background_color": "#28a745",
+  "icons": [
+    {
+      "purpose": "maskable",
+      "sizes": "192x192",
+      "src": "/web-app-manifest-192x192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "512x512",
+      "src": "/web-app-manifest-512x512.png",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "portrait",
+  "display": "standalone",
+  "dir": "auto",
+  "lang": "es-Pe",
+  "name": "Conciliación de Equipajes - Siberia",
+  "short_name": "ConciliaPe",
+  "start_url": "https://conciliape.netlify.app/",
+  "description": "aplicación para conciliar equipajes"
+}
