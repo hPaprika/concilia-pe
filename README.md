@@ -30,7 +30,7 @@ ConciliaPe permite ingresar el código de vuelo y las cantidades de equipaje por
 ## Estructura del proyecto
 - `index.html`: Página principal y única.
 - `src/css/styles.css`: Estilos globales y responsivos.
-- `src/app.js`: Lógica de la aplicación.
+- `src//js/app.js`: Lógica de la aplicación.
 - `favicon-96x96.png`: Favicon de la app.
 - `README.md`: Este archivo.
 

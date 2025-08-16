@@ -19,7 +19,7 @@
   "display": "standalone",
   "dir": "auto",
   "lang": "es-Pe",
-  "name": "Conciliación de Equipajes - Siberia",
+  "name": "Conciliación de Equipajes",
   "short_name": "ConciliaPe",
   "start_url": "https://conciliape.netlify.app/",
   "description": "aplicación para conciliar equipajes"
