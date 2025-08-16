@@ -1,4 +1,4 @@
-/* src/css/styles.css */
+/* src/css/main.css */
 
 /* Brand Colors & Global Settings */
 :root {
@@ -108,10 +108,10 @@ body {
   margin-block-end: 1.2rem;
   padding-inline: calc(var(--spacing-m) + 7vw);
 
-  @media (width >= 480px) {
+  @media (width >=480px) {
     /* width: clamp(320px, 100%, 450px); */
     padding-inline: var(--spacing-m);
-    
+
   }
 }
 
@@ -299,6 +299,7 @@ body {
 
 .btn-reset {
   background-color: var(--color-blue);
+
   &:focus {
     background-color: var(--color-green);
   }
@@ -310,7 +311,7 @@ body {
   margin-left: 0.3rem;
 }
 
-/* Common styles for underline inputs */
+/* Common main for underline inputs */
 .input-field,
 .flight-group input,
 .row-group:not(.total-group) input,
